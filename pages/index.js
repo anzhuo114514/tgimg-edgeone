@@ -205,9 +205,10 @@ export default function Home() {
                   </div>
                   
                   {diagnosticResult.checks && (
-                    <div style={{ marginBottom: 12 }}>
+                    <div style={{ marginBottom: 12, fontSize: '12px' }}>
+                      <strong style={{ display: 'block', marginBottom: 8 }}>配置检查：</strong>
                       {Object.entries(diagnosticResult.checks).map(([key, value]) => (
-                        <div key={key} className="diagnostic-item">
+                        <div key={key} className="diagnostic-item" style={{ marginBottom: 4 }}>
                           <strong>{key}:</strong> {String(value)}
                         </div>
                       ))}
@@ -215,8 +216,26 @@ export default function Home() {
                   )}
                   
                   {diagnosticResult.details && (
-                    <div className="diagnostic-item" style={{ color: '#f44336' }}>
-                      错误信息: {diagnosticResult.details}
+                    <div className="diagnostic-item" style={{ color: '#f44336', marginBottom: 12 }}>
+                      <strong>错误详情：</strong> {diagnosticResult.details}
+                    </div>
+                  )}
+                  
+                  {diagnosticResult.suggestions && diagnosticResult.suggestions.length > 0 && (
+                    <div style={{ marginBottom: 12 }}>
+                      <strong style={{ display: 'block', marginBottom: 8, color: '#ff9800' }}>💡 解决方案建议：</strong>
+                      {diagnosticResult.suggestions.map((suggestion, idx) => (
+                        <div key={idx} style={{ marginBottom: 12, padding: 8, backgroundColor: 'white', borderLeft: '3px solid #ff9800', borderRadius: 2 }}>
+                          <strong style={{ display: 'block', marginBottom: 6 }}>{suggestion.title}</strong>
+                          <ol style={{ margin: 0, paddingLeft: 20, fontSize: '12px' }}>
+                            {suggestion.steps.map((step, stepIdx) => (
+                              <li key={stepIdx} style={{ marginBottom: 4 }}>
+                                {step}
+                              </li>
+                            ))}
+                          </ol>
+                        </div>
+                      ))}
                     </div>
                   )}
                   
