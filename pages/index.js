@@ -8,10 +8,6 @@ export default function Home() {
   const [previewUrl, setPreviewUrl] = useState(null);
 
   useEffect(() => {
-    // Initialize MDUI after component mounts
-    if (typeof window !== 'undefined' && window.$mdui) {
-      window.$mdui.mutation();
-    }
     loadImages();
   }, []);
 
@@ -80,61 +76,96 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>EdgeOne Telegram 图床</title>
+        <title>Telegram 频道图床 (MDUI 卡片)</title>
         <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <meta charSet="utf-8" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdui@1.0.1/dist/css/mdui.min.css" />
-        <script src="https://cdn.jsdelivr.net/npm/mdui@1.0.1/dist/js/mdui.min.js" />
         <style>{`
-          body { margin: 0; padding: 0; }
-          .mdui-container { max-width: 1200px; margin: 0 auto; padding: 16px; }
-          .gallery { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 24px; }
-          .card-img { width: 100%; height: 200px; object-fit: cover; border-radius: 4px; }
-          .mdui-card { width: 260px; }
-          #preview { max-width: 150px; max-height: 150px; margin-top: 8px; border-radius: 4px; }
+          * { margin: 0; padding: 0; }
+          html, body { width: 100%; height: 100%; }
+          body { font-family: Roboto, sans-serif; }
+          .page-container { padding: 20px; max-width: 1400px; margin: 0 auto; }
+          .upload-card { margin-bottom: 24px; }
+          .form-group { margin-bottom: 16px; }
+          .form-group label { display: block; font-size: 14px; margin-bottom: 8px; color: #333; }
+          .form-group input[type="file"], 
+          .form-group input[type="text"] { 
+            width: 100%; 
+            padding: 8px 12px; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+            font-size: 14px;
+            box-sizing: border-box;
+          }
+          .form-group input[type="file"]:focus, 
+          .form-group input[type="text"]:focus { 
+            outline: none; 
+            border-color: #2196F3; 
+            background-color: #f5f5f5;
+          }
+          .preview-img { max-width: 150px; max-height: 150px; margin-top: 8px; border-radius: 4px; border: 1px solid #ddd; }
+          .btn-upload { background-color: #E91E63; color: white; border: none; padding: 10px 24px; border-radius: 2px; cursor: pointer; font-size: 14px; font-weight: 500; }
+          .btn-upload:hover { background-color: #C2185B; }
+          .btn-upload:disabled { background-color: #ccc; cursor: not-allowed; }
+          .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-top: 24px; }
+          .gallery-card { border: 1px solid #e0e0e0; border-radius: 2px; overflow: hidden; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+          .gallery-card-media { width: 100%; height: 180px; background: #f5f5f5; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+          .gallery-card-media img { width: 100%; height: 100%; object-fit: cover; }
+          .gallery-card-media .no-image { color: #999; font-size: 12px; }
+          .gallery-card-primary { padding: 12px; }
+          .gallery-card-title { font-weight: 500; font-size: 14px; margin-bottom: 4px; color: #333; }
+          .gallery-card-subtitle { font-size: 12px; color: #999; }
+          .gallery-card-actions { padding: 8px 12px; border-top: 1px solid #f0f0f0; }
+          .gallery-card-actions a { color: #2196F3; text-decoration: none; font-size: 13px; display: inline-block; }
+          .gallery-card-actions a:hover { text-decoration: underline; }
+          .no-images { text-align: center; color: #999; padding: 40px 20px; font-size: 14px; }
+          h1 { font-size: 28px; font-weight: 400; margin-bottom: 24px; color: #333; }
+          h2 { font-size: 18px; font-weight: 500; margin-bottom: 16px; margin-top: 24px; color: #333; }
         `}</style>
       </Head>
 
-      <div className="mdui-theme-primary-indigo mdui-theme-accent-pink" style={{ minHeight: '100vh' }}>
-        <div className="mdui-container">
-          <h2 className="mdui-typo-display-2">Telegram 频道图床（MDUI 卡片）</h2>
+      <div className="mdui-theme-primary-indigo mdui-theme-accent-pink" style={{ minHeight: '100vh', backgroundColor: '#fafafa' }}>
+        <div className="page-container">
+          <h1>Telegram 频道图床 (MDUI 卡片)</h1>
 
-          <div className="mdui-card" style={{ marginBottom: '16px' }}>
+          {/* 上传卡片 */}
+          <div className="mdui-card upload-card">
             <div className="mdui-card-primary">
               <div className="mdui-card-primary-title">上传图片到频道</div>
             </div>
             <div className="mdui-card-content">
               <form onSubmit={handleUpload}>
-                <div className="mdui-textfield mdui-textfield-floating-label" style={{ width: '100%' }}>
-                  <label className="mdui-textfield-label">图片文件</label>
+                <div className="form-group">
+                  <label>图片文件 <span style={{ color: '#E91E63' }}>*</span></label>
                   <input
                     id="imageInput"
-                    className="mdui-textfield-input"
                     type="file"
                     accept="image/*"
                     onChange={handleFileChange}
                     required
                   />
                 </div>
+
                 {previewUrl && (
-                  <div style={{ marginTop: '8px' }}>
-                    <img id="preview" src={previewUrl} alt="preview" />
+                  <div className="form-group">
+                    <img src={previewUrl} alt="preview" className="preview-img" />
                   </div>
                 )}
-                <div className="mdui-textfield mdui-textfield-floating-label" style={{ width: '100%', marginTop: '16px' }}>
-                  <label className="mdui-textfield-label">描述（可选）</label>
+
+                <div className="form-group">
+                  <label>描述 (可选)</label>
                   <input
-                    id="caption"
-                    className="mdui-textfield-input"
                     type="text"
+                    placeholder="输入图片描述或标题..."
                     value={caption}
                     onChange={(e) => setCaption(e.target.value)}
                   />
                 </div>
+
                 <button
-                  className="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme-accent"
                   type="submit"
+                  className="btn-upload"
                   disabled={uploading}
-                  style={{ marginTop: '16px' }}
                 >
                   {uploading ? '上传中...' : '上传'}
                 </button>
@@ -142,58 +173,45 @@ export default function Home() {
             </div>
           </div>
 
-          <h3 className="mdui-typo-subheading">图片列表</h3>
-          <div className="gallery">
-            {images.map((item, idx) => (
-              <div key={idx} className="mdui-card">
-                <div className="mdui-card-media" style={{ position: 'relative', overflow: 'hidden' }}>
-                  {item.url ? (
-                    <img
-                      src={item.url}
-                      alt={item.caption || '图片'}
-                      className="card-img"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  ) : null}
-                  {!item.url && (
-                    <div
-                      style={{
-                        width: '100%',
-                        height: '200px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: '#eee',
-                        color: '#999',
-                        fontSize: '14px',
-                      }}
-                    >
-                      无法加载
+          {/* 图片列表 */}
+          <h2>图片列表</h2>
+          {images.length > 0 ? (
+            <div className="gallery">
+              {images.map((item, idx) => (
+                <div key={idx} className="gallery-card">
+                  <div className="gallery-card-media">
+                    {item.url ? (
+                      <img
+                        src={item.url}
+                        alt={item.caption || '图片'}
+                      />
+                    ) : (
+                      <div className="no-image">无法加载</div>
+                    )}
+                  </div>
+                  <div className="gallery-card-primary">
+                    <div className="gallery-card-title">{item.caption || '(无标题)'}</div>
+                    <div className="gallery-card-subtitle">
+                      {new Date(item.date * 1000).toLocaleString('zh-CN')}
+                    </div>
+                  </div>
+                  {item.url && (
+                    <div className="gallery-card-actions">
+                      <a href={item.url} target="_blank" rel="noopener noreferrer">
+                        打开原图 →
+                      </a>
                     </div>
                   )}
                 </div>
-                <div className="mdui-card-primary">
-                  <div className="mdui-card-primary-title">{item.caption || '——'}</div>
-                  <div className="mdui-card-primary-subtitle">
-                    {new Date(item.date * 1000).toLocaleString()}
-                  </div>
-                </div>
-                <div className="mdui-card-actions">
-                  {item.url && (
-                    <a className="mdui-btn mdui-ripple" href={item.url} target="_blank" rel="noopener noreferrer">
-                      打开原图
-                    </a>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {images.length === 0 && <p style={{ textAlign: 'center', color: '#999', marginTop: '32px' }}>暂无图片</p>}
+              ))}
+            </div>
+          ) : (
+            <div className="no-images">暂无图片，上传第一张吧！</div>
+          )}
         </div>
       </div>
+
+      <script src="https://cdn.jsdelivr.net/npm/mdui@1.0.1/dist/js/mdui.min.js" />
     </>
   );
 }
