@@ -61,13 +61,21 @@ export default function Home() {
           setPreviewUrl(null);
           await loadImages();
         } else {
-          alert('上传失败: ' + (result.error || '未知错误'));
+          console.error('Upload failed:', result);
+          const errorMsg = result.details ? `${result.error}: ${result.details}` : (result.error || '未知错误');
+          alert('上传失败\n' + errorMsg);
         }
+        setUploading(false);
+      };
+      reader.onerror = () => {
+        console.error('FileReader error');
+        alert('读取文件失败');
+        setUploading(false);
       };
       reader.readAsDataURL(file);
     } catch (error) {
       console.error('Upload error:', error);
-      alert('上传出错');
+      alert('上传出错: ' + error.message);
     } finally {
       setUploading(false);
     }
