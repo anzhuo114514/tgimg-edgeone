@@ -8,12 +8,27 @@
 
 ## 如何在 EdgeOne 上部署
 
-### 第一步：创建 Telegram Bot
+### 第一步：创建 Telegram Bot 和频道
 
 1. 在 Telegram 中搜索 `@BotFather`，创建新 Bot
 2. 获得 `TELEGRAM_BOT_TOKEN`（例：`123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi`）
 3. 创建一个私有频道用于存储图片
-4. 添加你的 Bot 为频道管理员，获取频道 ID（例：`@mychannel` 或 `-100123456789`）
+4. **获取频道 ID（重要）**：
+
+   **方法 A：使用数字 ID（推荐）**
+   - 在频道中发送一条消息
+   - 访问：`https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates`
+   - 在 JSON 响应中找 `message.chat.id`，通常格式为 `-100123456789`
+   - 或使用 @userinfobot 查询频道信息
+
+   **方法 B：使用频道用户名**
+   - 直接使用 `@your_channel_name` 格式
+   
+   **方法 C：获取已知频道 ID**
+   - 如果频道没有初始消息，可以先向频道发送一条消息（包括 Bot 的消息）
+   - 然后通过 getUpdates 获取 chat_id
+
+5. **确保 Bot 是频道管理员**（需要"发送消息"权限）
 
 ### 第二步：在 EdgeOne 创建应用
 
@@ -29,6 +44,14 @@
 TELEGRAM_BOT_TOKEN=你的bot_token
 TELEGRAM_CHANNEL_ID=@你的频道名 或 -100123456789
 ```
+
+**如何测试配置是否正确：**
+
+1. 部署后，在应用首页点击"显示诊断"按钮
+2. 点击"运行检测"
+3. 系统会自动验证 Bot Token 和 Channel ID
+4. 如果配置正确，诊断会显示 ✓ 标记
+5. 如果有问题，会显示具体错误和解决方案
 
 ### 第四步：配置持久化存储
 
@@ -116,6 +139,49 @@ GET /api/list
 ```
 
 响应：按时间倒序的图片元数据数组
+
+## 故障排除
+
+### 上传失败：`Bad Request: chat not found`
+
+**原因：**
+- Channel ID 格式不正确
+- Bot 没有权限访问频道
+- 频道 ID 输入错误
+
+**解决方案：**
+1. 使用"诊断"工具（首页点击"显示诊断"→"运行检测"）验证配置
+2. 确认 Channel ID 为以下格式之一：
+   - `-100` 开头的数字（例：`-1001234567890`）
+   - 频道用户名（例：`@my_image_channel`）
+3. 确保 Bot 是频道管理员且有"发送消息"权限
+4. 检查 Bot Token 是否正确复制
+
+### 上传失败：`Unauthorized: bot was blocked by the user`
+
+**原因：** Bot 被移除或被频道屏蔽
+
+**解决方案：**
+1. 重新将 Bot 添加到频道
+2. 确保 Bot 有管理员权限
+3. 重新部署应用
+
+### 诊断工具显示 Bot Token 无效
+
+**原因：** Bot Token 格式错误或已过期
+
+**解决方案：**
+1. 向 @BotFather 重新申请新的 Bot Token
+2. 确保完整复制 Token（包括冒号和所有字符）
+3. 更新环境变量
+
+### 应用部署后无法访问
+
+**排查步骤：**
+1. 检查 EdgeOne 日志中是否有 Node.js 错误
+2. 运行诊断工具验证 Telegram 连接
+3. 确认应用监听端口 3000
+4. 检查防火墙/网络配置
 
 ## EdgeOne 特殊说明
 

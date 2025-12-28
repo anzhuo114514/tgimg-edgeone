@@ -6,10 +6,26 @@ export default function Home() {
   const [caption, setCaption] = useState('');
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [showDiagnostic, setShowDiagnostic] = useState(false);
+  const [diagnosticResult, setDiagnosticResult] = useState(null);
+  const [diagnosticLoading, setDiagnosticLoading] = useState(false);
 
   useEffect(() => {
     loadImages();
   }, []);
+
+  const runDiagnostic = async () => {
+    setDiagnosticLoading(true);
+    try {
+      const res = await fetch('/api/test');
+      const data = await res.json();
+      setDiagnosticResult(data);
+    } catch (error) {
+      setDiagnosticResult({ error: '诊断请求失败: ' + error.message });
+    } finally {
+      setDiagnosticLoading(false);
+    }
+  };
 
   const loadImages = async () => {
     try {
@@ -129,12 +145,70 @@ export default function Home() {
           .no-images { text-align: center; color: #999; padding: 40px 20px; font-size: 14px; }
           h1 { font-size: 28px; font-weight: 400; margin-bottom: 24px; color: #333; }
           h2 { font-size: 18px; font-weight: 500; margin-bottom: 16px; margin-top: 24px; color: #333; }
+          .diagnostic-btn { background-color: #666; color: white; border: none; padding: 6px 12px; border-radius: 2px; cursor: pointer; font-size: 12px; margin-left: auto; display: block; }
+          .diagnostic-btn:hover { background-color: #555; }
+          .diagnostic-panel { background: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; padding: 16px; margin-bottom: 20px; }
+          .diagnostic-success { border-left: 4px solid #4CAF50; }
+          .diagnostic-error { border-left: 4px solid #f44336; }
+          .diagnostic-warning { border-left: 4px solid #ff9800; }
+          .diagnostic-code { background: white; border: 1px solid #ddd; border-radius: 2px; padding: 12px; font-family: monospace; font-size: 12px; max-height: 300px; overflow: auto; margin-top: 12px; }
+          .diagnostic-item { margin-bottom: 8px; font-size: 13px; }
         `}</style>
       </Head>
 
       <div className="mdui-theme-primary-indigo mdui-theme-accent-pink" style={{ minHeight: '100vh', backgroundColor: '#fafafa' }}>
         <div className="page-container">
-          <h1>Telegram 频道图床 (MDUI 卡片)</h1>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h1 style={{ margin: 0 }}>Telegram 频道图床 (MDUI 卡片)</h1>
+            <button className="diagnostic-btn" onClick={() => setShowDiagnostic(!showDiagnostic)}>
+              {showDiagnostic ? '隐藏诊断' : '显示诊断'}
+            </button>
+          </div>
+
+          {showDiagnostic && (
+            <div className={`diagnostic-panel ${diagnosticResult?.ok ? 'diagnostic-success' : 'diagnostic-error'}`}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: '0 0 12px 0' }}>配置诊断</h3>
+                <button className="diagnostic-btn" onClick={runDiagnostic} disabled={diagnosticLoading}>
+                  {diagnosticLoading ? '检测中...' : '运行检测'}
+                </button>
+              </div>
+              
+              {diagnosticResult ? (
+                <>
+                  <div style={{ marginBottom: 12 }}>
+                    <strong>{diagnosticResult.ok ? '✓ 配置正确' : '✗ 配置错误'}</strong>
+                    {diagnosticResult.message && <p style={{ margin: '4px 0 0 0' }}>{diagnosticResult.message}</p>}
+                    {diagnosticResult.error && <p style={{ margin: '4px 0 0 0', color: '#f44336' }}>{diagnosticResult.error}</p>}
+                  </div>
+                  
+                  {diagnosticResult.checks && (
+                    <div style={{ marginBottom: 12 }}>
+                      {Object.entries(diagnosticResult.checks).map(([key, value]) => (
+                        <div key={key} className="diagnostic-item">
+                          <strong>{key}:</strong> {String(value)}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {diagnosticResult.details && (
+                    <div className="diagnostic-item" style={{ color: '#f44336' }}>
+                      错误信息: {diagnosticResult.details}
+                    </div>
+                  )}
+                  
+                  {diagnosticResult.help && (
+                    <div className="diagnostic-code">
+                      {diagnosticResult.help}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p style={{ color: '#666', margin: 0 }}>点击"运行检测"按钮来诊断配置</p>
+              )}
+            </div>
+          )}
 
           {/* 上传卡片 */}
           <div className="mdui-card upload-card">
