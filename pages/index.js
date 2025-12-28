@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
-import styles from '../styles/home.module.css';
 
 export default function Home() {
   const [images, setImages] = useState([]);
@@ -9,6 +8,10 @@ export default function Home() {
   const [previewUrl, setPreviewUrl] = useState(null);
 
   useEffect(() => {
+    // Initialize MDUI after component mounts
+    if (typeof window !== 'undefined' && window.$mdui) {
+      window.$mdui.mutation();
+    }
     loadImages();
   }, []);
 
@@ -80,6 +83,7 @@ export default function Home() {
         <title>EdgeOne Telegram 图床</title>
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdui@1.0.1/dist/css/mdui.min.css" />
+        <script src="https://cdn.jsdelivr.net/npm/mdui@1.0.1/dist/js/mdui.min.js" />
         <style>{`
           body { margin: 0; padding: 0; }
           .mdui-container { max-width: 1200px; margin: 0 auto; padding: 16px; }
@@ -90,7 +94,7 @@ export default function Home() {
         `}</style>
       </Head>
 
-      <body className="mdui-theme-primary-indigo mdui-theme-accent-pink">
+      <div className="mdui-theme-primary-indigo mdui-theme-accent-pink" style={{ minHeight: '100vh' }}>
         <div className="mdui-container">
           <h2 className="mdui-typo-display-2">Telegram 频道图床（MDUI 卡片）</h2>
 
@@ -142,32 +146,33 @@ export default function Home() {
           <div className="gallery">
             {images.map((item, idx) => (
               <div key={idx} className="mdui-card">
-                <div className="mdui-card-media">
+                <div className="mdui-card-media" style={{ position: 'relative', overflow: 'hidden' }}>
                   {item.url ? (
                     <img
                       src={item.url}
                       alt={item.caption || '图片'}
                       className="card-img"
                       onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'flex';
+                        e.currentTarget.style.display = 'none';
                       }}
                     />
                   ) : null}
-                  <div
-                    style={{
-                      width: '100%',
-                      height: '200px',
-                      display: item.url ? 'none' : 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: '#eee',
-                      color: '#999',
-                      fontSize: '14px',
-                    }}
-                  >
-                    无法加载
-                  </div>
+                  {!item.url && (
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '200px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: '#eee',
+                        color: '#999',
+                        fontSize: '14px',
+                      }}
+                    >
+                      无法加载
+                    </div>
+                  )}
                 </div>
                 <div className="mdui-card-primary">
                   <div className="mdui-card-primary-title">{item.caption || '——'}</div>
@@ -188,9 +193,7 @@ export default function Home() {
 
           {images.length === 0 && <p style={{ textAlign: 'center', color: '#999', marginTop: '32px' }}>暂无图片</p>}
         </div>
-
-        <script src="https://cdn.jsdelivr.net/npm/mdui@1.0.1/dist/js/mdui.min.js"></script>
-      </body>
+      </div>
     </>
   );
 }
