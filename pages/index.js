@@ -58,41 +58,63 @@ export default function Home() {
       return;
     }
 
+    // 检查文件大小（Telegram 限制 50MB）
+    if (file.size > 50 * 1024 * 1024) {
+      alert('文件过大，请选择小于 50MB 的图片');
+      return;
+    }
+
     setUploading(true);
     try {
       const reader = new FileReader();
       reader.onload = async (event) => {
-        const base64 = event.target.result;
-        const res = await fetch('/api/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: base64, caption }),
-        });
+        try {
+          const base64 = event.target.result;
+          console.log('[Upload] Starting upload, file size:', file.size, 'bytes');
+          
+          const res = await fetch('/api/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: base64, caption }),
+          });
 
-        const result = await res.json();
-        if (result.ok) {
-          alert('上传成功！');
-          fileInput.value = '';
-          setCaption('');
-          setPreviewUrl(null);
-          await loadImages();
-        } else {
-          console.error('Upload failed:', result);
-          const errorMsg = result.details ? `${result.error}: ${result.details}` : (result.error || '未知错误');
-          alert('上传失败\n' + errorMsg);
+          console.log('[Upload] Response status:', res.status);
+          const result = await res.json();
+          console.log('[Upload] Response data:', result);
+
+          if (result.ok) {
+            alert('上传成功！');
+            fileInput.value = '';
+            setCaption('');
+            setPreviewUrl(null);
+            await loadImages();
+          } else {
+            console.error('Upload failed:', result);
+            const errorMsg = result.details ? `${result.error}: ${result.details}` : (result.error || '未知错误');
+            alert('上传失败\n' + errorMsg);
+          }
+        } catch (innerError) {
+          console.error('Upload processing error:', innerError);
+          alert('处理响应失败: ' + innerError.message);
+        } finally {
+          setUploading(false);
         }
-        setUploading(false);
       };
       reader.onerror = () => {
         console.error('FileReader error');
         alert('读取文件失败');
         setUploading(false);
       };
+      reader.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = (event.loaded / event.total) * 100;
+          console.log('[Upload] Reading progress:', percentComplete.toFixed(2) + '%');
+        }
+      };
       reader.readAsDataURL(file);
     } catch (error) {
       console.error('Upload error:', error);
       alert('上传出错: ' + error.message);
-    } finally {
       setUploading(false);
     }
   };
